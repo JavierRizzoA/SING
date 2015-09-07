@@ -20,11 +20,85 @@
 
     <div class="container">
       <div id="app-box" class="mainbox col-md-10 col-md-offset-1 col-sm-12 col-sm-offseet-0">
-        <div class="panel panel-default">
+        <div class="panel panel-primary">
           <div class="panel-heading">
             <div class="panel-title">SING</div>
           </div>
           <div class="panel-body" style="padding-top: 30px">
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="active"><a href="#simulation" role="tab" data-toggle="tab">Simulation</a></li>
+              <li role="presentation" class=""><a href="#pcb" role="tab" data-toggle="tab">PCB</a></li>
+              <li role="presentation" class=""><a href="#settings" role="tab" data-toggle="tab">Settings</a></li>
+            </ul>
+            <div class="tab-content">
+              <div role="tabpanel" class="tab-pane active" id="simulation">
+                <div class="container-fluid">
+                  <div class="row" style="margin-top: 10px">
+                    <div class="col-xs-4">
+                      <h4>Clock: <span class="label label-default">0</span></h4>
+                    </div>
+                    <div class="col-xs-6">
+                      <h4>Quantum: <span class="label label-default">0</span></h4>
+                    </div>
+                    <div class="col-xs-2">
+                      <h4><span class="glyphicon glyphicon-music"></span></h4>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-3 col-xs-6">
+                      <div class="row">
+                        <h4>New</h4>
+                      </div>
+                      <div class="row">
+                        <select multiple class="form-control"></select>
+                      </div>
+                      <div class="row">
+                        <h4>Ready</h4>
+                      </div>
+                      <div class="row">
+                        <select multiple class="form-control"></select>
+                      </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                      <div class="row">
+                        <h4>Waiting</h4>
+                      </div>
+                      <div class="row">
+                        <select multiple class="form-control"></select>
+                      </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                      <div class="row">
+                        <h4>Running (<span>4</span> cores)</h4>
+                      </div>
+                      <div class="row">
+                        <select multiple class="form-control"></select>
+                      </div>
+                      <div class="row">
+                        <h4>Using I/O</h4>
+                      </div>
+                      <div class="row">
+                        <select class="form-control"></select>
+                      </div>
+                    </div>
+                    <div class="col-sm-3 col-xs-6">
+                      <div class="row">
+                        <h4>Terminated</h4>
+                      </div>
+                      <div class="row">
+                        <select multiple class="form-control"></select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="settings">
+                <h1>Settings</h1>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="pcb">
+                <h1>PCB</h1>
+              </div>
+            </div>
           </div>
         </div>
       </div>
