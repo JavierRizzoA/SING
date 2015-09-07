@@ -12,6 +12,10 @@ install:
 
     npm install -g babel
 
+The rest of the dependencies will be installed by running
+
+    npm install
+
 ###Compiling
 
     babel sing.js -o sing-compiled.js
@@ -19,6 +23,13 @@ install:
 ###Running
 
 Just open the `index.html` file.
+
+##Third-party packages used (NPM)
+
+* bootstrap
+* bootstrap-slider
+* jquery
+* babel
 
 ##Author
 
