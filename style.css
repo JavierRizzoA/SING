@@ -1,3 +1,11 @@
 #app-box {
     margin-top: 50px;
 }
+
+.slider {
+    margin-top: 12px;
+}
+
+.radio-inline, .checkbox-inline {
+    padding-top: 12px;
+}
