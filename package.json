@@ -1,0 +1,25 @@
+{
+  "name": "sing",
+  "version": "1.0.0",
+  "description": "\"Sing is not GNU\". An OS Simulator.",
+  "main": "index.html",
+  "dependencies": {
+    "bootstrap": "^3.3.5",
+    "bootstrap-slider": "^5.1.0",
+    "jquery": "^2.1.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JavierRizzoA/SING.git"
+  },
+  "author": "Javier Rizzo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JavierRizzoA/SING/issues"
+  },
+  "homepage": "https://github.com/JavierRizzoA/SING#readme"
+}
