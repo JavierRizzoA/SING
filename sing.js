@@ -1,3 +1,5 @@
+var interval = setInterval(cycle, 200);
+
 $('#new-process-probability-slider').slider({
     precission: 0,
     value: 50
@@ -37,3 +39,11 @@ $('#waiting-limit-slider').slider({
 $('#cpu-slider').slider({});
 
 $('#io-slider').slider({});
+
+$('#delay-slider').on('slide', function(e) {
+    clearInterval(interval);
+    interval = setInterval(cycle, e.value * 1000);
+});
+
+function cycle() {
+}
