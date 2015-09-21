@@ -10,7 +10,9 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "xdg-open index.html",
+    "build": "babel sing.js -o sing-compiled.js",
+    "dev": "npm run build && npm run test"
   },
   "repository": {
     "type": "git",

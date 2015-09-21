@@ -1,6 +1,36 @@
 var interval = null;
 var running = false;
 
+class Process {
+    constructor(id, creationCycle, cpuNeeded, ioStart, ioNeeded) {
+        this.id = id;
+        this.creationCycle = creationCycle;
+        this.cpuNeeded = cpuNeeded;
+        this.ioStart = ioStart;
+        this.ioNeeded = ioNeeded;
+        this.finished = false;
+        this.ioUsed = 0;
+        this.finishedCycle = '---';
+        this.timeInSystem = 0;
+    }
+}
+
+class PCB {
+    constructor() {
+        this.processes = [];
+    }
+
+    fillPCBTable() {
+        var rowTemplate = '<tr><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6}</td><td>{7}</td><td>{8}</td></tr>';
+        $('#pcb-table tr').remove();
+        processes.forEach(function(p) {
+            $('#pcb-table').html($('#pcb-table').html() + rowTemplate.format(p.id, p.creationCycle, p.cpuNeeded, p.ioStart, p.ioNeeded, p.ioUsed, p.finishedCycle, p.timeInSystem));
+        });
+    }
+}
+
+var pcb = new PCB();
+
 $('#new-process-probability-slider').slider({
     precission: 0,
     value: 50
@@ -88,6 +118,8 @@ $('#stop-badge').on('click', function() {
     clearInterval(interval);
 });
 
-function cycle() {
+pcb.processes.push(new Process('P01', 0, 10, 3, 5));
 
+function cycle() {
+    pcb.fillPCBTable();
 }
