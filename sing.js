@@ -18,6 +18,7 @@ class Process {
     this.moved = false;
     this.withError = false;
     this.waitedTime = 0;
+    this.status = "New";
   }
 
   run() {
@@ -104,21 +105,25 @@ class PCB {
       if(p.cpuUsed === p.cpuNeeded && !p.moved) {
         toRemove.push(i);
         p.finishedCycle = pcb.cycle;
+        p.status = 'Terminated';
         pcb.lists['terminated'].push(p);
         p.moved = true;
       } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
         p.moved = true;
         toRemove.push(i);
-        if(pcb.lists['waiting'].hasSpace())
+        if(pcb.lists['waiting'].hasSpace()) {
+          p.status = 'Waiting';
           pcb.lists['waiting'].push(p);
-        else {
+        } else {
           p.withError = true;
           p.finishedCycle = pcb.cycle;
+          p.status = 'Error';
           pcb.lists['terminated'].push(p);
         }
       } else if(p.quantum == $('#quantum-slider').slider('getValue') && !p.moved && $('#rr-radio').prop('checked')) {
         p.moved = true;
         toRemove.push(i);
+        p.status = 'Ready';
         pcb.lists['ready'].push(p);
       }
     });
@@ -131,11 +136,13 @@ class PCB {
       if(p.ioUsed === p.ioNeeded && !p.moved) {
         toRemove.push(i);
         p.moved = true;
-        if(pcb.lists['ready'].hasSpace())
+        if(pcb.lists['ready'].hasSpace()) {
+          p.status = 'Ready';
           pcb.lists['ready'].push(p);
-        else {
+        } else {
           p.withError = true;
           p.finishedCycle = pcb.cycle;
+          p.status = 'Error';
           pcb.lists['terminated'].push(p);
         }
       }
@@ -148,6 +155,7 @@ class PCB {
     this.lists['waiting'].forEach(function(p, i) {
       if(pcb.lists['io'].hasSpace() && !p.moved) {
         p.moved = true;
+        p.status = 'Using I/O';
         pcb.lists['io'].push(p);
         toRemove.push(i);
       }
@@ -160,11 +168,13 @@ class PCB {
     if(this.lists['running'].hasSpace()) {
       this.lists['new'].forEach(function(p, i){
         if(!p.moved) {
-          if(pcb.lists['ready'].hasSpace())
+          if(pcb.lists['ready'].hasSpace()) {
+            p.status = 'Ready';
             pcb.lists['ready'].push(p);
-          else {
+          } else {
             p.withError = true;
             p.finishedCycle = pcb.cycle;
+            p.status = 'Error';
             pcb.lists['terminated'].push(p);
           }
           toRemove.push(i);
@@ -182,6 +192,7 @@ class PCB {
         toRemove.push(i);
         p.quantum = 0;
         p.moved = true;
+        p.status = 'Running';
         pcb.lists['running'].push(p);
       }
     });
@@ -213,6 +224,7 @@ class PCB {
       var p = new Process('P' + this.processCount++, this.cycle);
       this.allProcesses.push(p);
       p.moved = true;
+      p.status = 'New';
       this.lists['new'].push(p);
     }
   }
@@ -256,6 +268,7 @@ class PCB {
         this.lists['new'].processes[i].withError = true;
         toRemove.push(i);
         this.lists['new'].processes[i].finishedCycle = this.cycle;
+        this.lists['new'].processes[i].status = 'Error';
         this.lists['terminated'].push(this.lists['new'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
@@ -267,6 +280,7 @@ class PCB {
         this.lists['ready'].processes[i].withError = true;
         toRemove.push(i);
         this.lists['ready'].processes[i].finishedCycle = this.cycle;
+        this.lists['ready'].processes[i].status = 'Error';
         this.lists['terminated'].push(this.lists['ready'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
@@ -278,13 +292,13 @@ class PCB {
         this.lists['waiting'].processes[i].withError = true;
         toRemove.push(i);
         this.lists['waiting'].processes[i].finishedCycle = this.cycle;
+        this.lists['waiting'].processes[i].status = 'Error';
         this.lists['terminated'].push(this.lists['waiting'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
         pcb.lists['waiting'].splice(p - i, 1);
       });
-    }
-    else {
+    } else {
       this.lists['new'].limit = 50000000;
       this.lists['ready'].limit = 50000000;
       this.lists['waiting'].limit = 50000000;
@@ -297,10 +311,12 @@ class PCB {
     for(var i = this.lists['running'].limit; i < this.lists['running'].length(); i++) {
       toRemove.push(i);
       if(this.lists['ready'].hasSpace) {
+        this.lists['running'].processes[i].status = 'Ready';
         this.lists['ready'].push(this.lists['running'].processes[i]);
       } else {
         this.lists['running'].processes[i].withError = true;
         this.lists['running'].processes[i].finishedCycle = this.cycle;
+        this.lists['running'].processes[i].status = 'Error';
         this.lists['terminated'].push(this.lists['running'].processes[i]);
       }
     }
@@ -327,8 +343,9 @@ class PCB {
     this.allProcesses.forEach(function(p) {
       $('#pcb-table').html(
         $('#pcb-table').html() +
-        '<tr>' + 
+        ((p.withError) ? '<tr style="color: #FF0000">' : '<tr>') +
         '<td>' + p.id +'</td>' +
+        '<td>' + p.status +'</td>' +
         '<td>' + p.creationCycle +'</td>' +
         '<td>' + p.cpuNeeded +'</td>' +
         '<td>' + p.cpuUsed +'</td>' +
@@ -432,6 +449,11 @@ $('#stop-badge').on('click', function() {
   $('#pause-badge').parent().hide();
   running = false;
   clearInterval(interval);
+  pcb = new PCB();
+  pcb.displayProcesses();
+  pcb.updateQuantumLabels();
+  pcb.fillPCBTable();
+  $('#clock-label').html(0);
 });
 
 function toggleQuantum() {
