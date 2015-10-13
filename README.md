@@ -18,7 +18,7 @@ The rest of the dependencies will be installed by running
 
 ###Compiling
 
-    babel sing.js -o sing-compiled.js
+    npm run build
 
 ###Running
 
