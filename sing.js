@@ -198,6 +198,28 @@ class PCB {
     }
   }
 
+  updateQuantumLabels() {
+        $('#quantum-1-label').hide();
+        $('#quantum-2-label').hide();
+        $('#quantum-3-label').hide();
+        $('#quantum-4-label').hide();
+    switch(this.lists['running'].processes.length) {
+      case 4:
+        $('#quantum-4-label').show();
+        $('#quantum-4-label').html(this.lists['running'].processes[3].quantum - 1);
+      case 3:
+        $('#quantum-3-label').show();
+        $('#quantum-3-label').html(this.lists['running'].processes[2].quantum - 1);
+      case 2:
+        $('#quantum-2-label').show();
+        $('#quantum-2-label').html(this.lists['running'].processes[1].quantum - 1);
+      case 1:
+        $('#quantum-1-label').show();
+        $('#quantum-1-label').html(this.lists['running'].processes[0].quantum - 1);
+        break;
+    }
+  }
+
   tick() {
     this.cycle++;
     $('#clock-label').html(this.cycle);
@@ -205,6 +227,7 @@ class PCB {
     this.moveProcesses();
     this.runProcesses();
     this.displayProcesses();
+    this.updateQuantumLabels();
   }
 
   fillPCBTable() {
