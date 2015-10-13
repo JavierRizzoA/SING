@@ -15,21 +15,25 @@ class Process {
     this.finishedCycle = '---';
     this.timeInSystem = 0;
     this.quantum = 0;
+    this.moved = false;
   }
 
-  process() {
+  run() {
     this.cpuUsed++;
     this.quantum++;
     this.timeInSystem++;
+    this.moved = false;
   }
 
   useIO() {
     this.ioUsed++;
     this.timeInSystem++;
+    this.moved = false;
   }
 
   wait() {
     this.timeInSystem++;
+    this.moved = false;
   }
 }
 
@@ -86,25 +90,22 @@ class PCB {
     this.lists['io'].limit = 1;
   }
 
-  tick() {
-    this.cycle++;
-    if(Math.random() * 100 <= $('#new-process-probability-slider').slider('getValue')) {
-      //TODO Do not create when full.
-      this.lists['new'].push(new Process('P' + this.processCount++, this.cycle));
-    }
+  moveProcesses() {
     var toRemove = [];
-    this.lists['running'].forEach(function(p, i, list) {
-      p.process();
-      if(p.cpuUsed === p.cpuNeeded) {
+    this.lists['running'].forEach(function(p, i) {
+      if(p.cpuUsed === p.cpuNeeded && !p.moved) {
         toRemove.push(i);
         pcb.lists['terminated'].push(p);
-      } else if(p.cpuUsed == p.ioStart) {
-          toRemove.push(i);
+        p.moved = true;
+      } else if(p.cpuUsed == p.ioStart && !p.moved) {
+        p.moved = true;
+        toRemove.push(i);
         if(pcb.lists['waiting'].hasSpace())
           pcb.lists['waiting'].push(p);
         else
           pcb.lists['terminated'].push(p);
-      } else if(p.quantum == $('#quantum-slider').slider('getValue')) {
+      } else if(p.quantum == $('#quantum-slider').slider('getValue') && pcb.lists['ready'].processes.length <= pcb.lists['ready'].limit && !p.moved) {
+        p.moved = true;
         toRemove.push(i);
         pcb.lists['ready'].push(p);
       }
@@ -114,10 +115,10 @@ class PCB {
     });
 
     toRemove = [];
-    this.lists['io'].forEach(function(p, i, list) {
-      p.useIO();
-      if(p.ioUsed === p.ioNeeded) {
+    this.lists['io'].forEach(function(p, i) {
+      if(p.ioUsed === p.ioNeeded && !p.moved) {
         toRemove.push(i);
+        p.moved = true;
         if(pcb.lists['ready'].hasSpace())
           pcb.lists['ready'].push(p);
         else
@@ -129,48 +130,81 @@ class PCB {
     });
 
     toRemove = [];
-    while(this.lists['io'].hasSpace() && this.lists['waiting'].length() > 0) {
-      if(toRemove.length === 0) 
-        toRemove.push(0); 
-      else 
-        toRemove.push(toRemove[toRemove.length - 1] + 1);
-      this.lists['io'].push(this.lists['waiting'].processes[toRemove[toRemove.length - 1]]);
-    }
+    this.lists['waiting'].forEach(function(p, i) {
+      if(pcb.lists['io'].hasSpace() && !p.moved) {
+        p.moved = true;
+        pcb.lists['io'].push(p);
+        toRemove.push(i);
+      }
+    });
     toRemove.forEach(function(p, i) {
       pcb.lists['waiting'].splice(p - i, 1);
-      //TODO Fix splices.
     });
 
+    toRemove = [];
     if(this.lists['running'].hasSpace()) {
-      this.lists['new'].forEach(function(p){
-        if(pcb.lists['ready'].hasSpace())
-          pcb.lists['ready'].push(p);
-        else
-          pcb.lists['terminated'].push(p);
+      this.lists['new'].forEach(function(p, i){
+        if(!p.moved) {
+          if(pcb.lists['ready'].hasSpace())
+            pcb.lists['ready'].push(p);
+          else
+            pcb.lists['terminated'].push(p);
+          toRemove.push(i);
+          p.moved = true;
+        }
       });
-      this.lists['new'].processes = [];
     }
+    toRemove.forEach(function(p, i) {
+      pcb.lists['new'].splice(p - i, 1);
+    });
 
     toRemove = [];
     this.lists['ready'].forEach(function(p, i) {
-      if(pcb.lists['running'].hasSpace()) {
+      if(pcb.lists['running'].hasSpace() && !p.moved) {
         toRemove.push(i);
         p.quantum = 0;
+        p.moved = true;
         pcb.lists['running'].push(p);
       }
     });
     toRemove.forEach(function(p, i) {
       pcb.lists['ready'].splice(p - i, 1);
     });
+  }
 
+  runProcesses() {
+    this.lists['new'].forEach(function(p) {p.wait();});
+    this.lists['ready'].forEach(function(p) {p.wait();});
+    this.lists['running'].forEach(function(p) {p.run();});
+    this.lists['waiting'].forEach(function(p) {p.wait();});
+    this.lists['io'].forEach(function(p) {p.useIO();});
+  }
+
+  displayProcesses() {
     this.lists['new'].fillDisplay();
     this.lists['ready'].fillDisplay();
     this.lists['running'].fillDisplay();
     this.lists['waiting'].fillDisplay();
     this.lists['io'].fillDisplay();
     this.lists['terminated'].fillDisplay();
+  }
 
+  createProcesses() {
+    if(Math.random() * 100 <= $('#new-process-probability-slider').slider('getValue')) {
+      //TODO Do not create when full.
+      var p = new Process('P' + this.processCount++, this.cycle);
+      p.moved = true;
+      this.lists['new'].push(p);
+    }
+  }
+
+  tick() {
+    this.cycle++;
     $('#clock-label').html(this.cycle);
+    this.createProcesses();
+    this.moveProcesses();
+    this.runProcesses();
+    this.displayProcesses();
   }
 
   fillPCBTable() {
