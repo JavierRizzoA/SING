@@ -226,6 +226,10 @@ class PCB {
       case 1:
         $('#quantum-1-label').show();
         $('#quantum-1-label').html(this.lists['running'].processes[0].quantum - 1);
+        $('#quantum-4-label').parent().show();
+        break;
+      case 0:
+        $('#quantum-4-label').parent().hide();
         break;
     }
   }
@@ -273,15 +277,33 @@ class PCB {
     }
   }
 
+  updateCPUCores() {
+    this.lists['running'].limit = $('#cores-slider').slider('getValue');
+    var toRemove = [];
+    for(var i = this.lists['running'].limit; i < this.lists['running'].length(); i++) {
+      toRemove.push(i);
+      if(this.lists['ready'].hasSpace) {
+        this.lists['ready'].push(this.lists['running'].processes[i]);
+      } else {
+        this.lists['running'].processes[i].withError = true;
+        this.lists['terminated'].push(this.lists['running'].processes[i]);
+      }
+    }
+    toRemove.forEach(function(p, i) {
+      pcb.lists['running'].splice(p - i, 1);
+    });
+  }
+
   tick() {
     this.cycle++;
     $('#clock-label').html(this.cycle);
     this.createProcesses();
     this.moveProcesses();
+    this.updateListLimits();
+    this.updateCPUCores();
     this.runProcesses();
     this.displayProcesses();
     this.updateQuantumLabels();
-    this.updateListLimits();
   }
 
   fillPCBTable() {
