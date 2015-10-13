@@ -403,6 +403,16 @@ $('#stop-badge').on('click', function() {
   clearInterval(interval);
 });
 
+function toggleQuantum() {
+  if($('#rr-radio').prop('checked'))
+    $('#quantum-slider').slider('enable');
+  else
+    $('#quantum-slider').slider('disable');
+}
+
+$('#rr-radio').change(toggleQuantum);
+$('#fcfs-radio').change(toggleQuantum);
+
 var pcb = new PCB();
 
 function cycle() {
