@@ -110,7 +110,7 @@ class PCB {
           p.withError = true;
           pcb.lists['terminated'].push(p);
         }
-      } else if(p.quantum == $('#quantum-slider').slider('getValue') && pcb.lists['ready'].processes.length <= pcb.lists['ready'].limit && !p.moved) {
+      } else if(p.quantum == $('#quantum-slider').slider('getValue') && !p.moved && $('#rr-radio').prop('checked')) {
         p.moved = true;
         toRemove.push(i);
         pcb.lists['ready'].push(p);
@@ -209,10 +209,10 @@ class PCB {
   }
 
   updateQuantumLabels() {
-        $('#quantum-1-label').hide();
-        $('#quantum-2-label').hide();
-        $('#quantum-3-label').hide();
-        $('#quantum-4-label').hide();
+    $('#quantum-1-label').hide();
+    $('#quantum-2-label').hide();
+    $('#quantum-3-label').hide();
+    $('#quantum-4-label').hide();
     switch(this.lists['running'].processes.length) {
       case 4:
         $('#quantum-4-label').show();
@@ -232,6 +232,8 @@ class PCB {
         $('#quantum-4-label').parent().hide();
         break;
     }
+    if($('#fcfs-radio').prop('checked'))
+        $('#quantum-4-label').parent().hide();
   }
 
   updateListLimits() {
@@ -358,6 +360,8 @@ $('#io-slider').slider({});
 
 $('#round-robin-radio').prop('checked', true);
 $('#pause-badge').parent().hide();
+
+$('#rr-radio').prop('checked', true);
 
 $('#list-limits-checkbox').change(function() {
   if(this.checked) {
