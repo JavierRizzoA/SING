@@ -16,6 +16,7 @@ class Process {
     this.timeInSystem = 0;
     this.quantum = 0;
     this.moved = false;
+    this.withError = false;
   }
 
   run() {
@@ -48,7 +49,10 @@ class List {
     this.display.empty();
     var that = this;
     this.processes.forEach(function(p) {
-      that.display.append("<option>" + p.id + "</option>");
+      if(!p.withError)
+        that.display.append('<option>' + p.id + '</option>');
+      else
+        that.display.append('<option style="color: #FF0000">' + p.id + '</option>');
     });
   }
 
@@ -97,13 +101,15 @@ class PCB {
         toRemove.push(i);
         pcb.lists['terminated'].push(p);
         p.moved = true;
-      } else if(p.cpuUsed == p.ioStart && !p.moved) {
+      } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
         p.moved = true;
         toRemove.push(i);
         if(pcb.lists['waiting'].hasSpace())
           pcb.lists['waiting'].push(p);
-        else
+        else {
+          p.withError = true;
           pcb.lists['terminated'].push(p);
+        }
       } else if(p.quantum == $('#quantum-slider').slider('getValue') && pcb.lists['ready'].processes.length <= pcb.lists['ready'].limit && !p.moved) {
         p.moved = true;
         toRemove.push(i);
@@ -121,8 +127,10 @@ class PCB {
         p.moved = true;
         if(pcb.lists['ready'].hasSpace())
           pcb.lists['ready'].push(p);
-        else
+        else {
+          p.withError = true;
           pcb.lists['terminated'].push(p);
+        }
       }
     });
     toRemove.forEach(function(p, i) {
@@ -147,8 +155,10 @@ class PCB {
         if(!p.moved) {
           if(pcb.lists['ready'].hasSpace())
             pcb.lists['ready'].push(p);
-          else
+          else {
+            p.withError = true;
             pcb.lists['terminated'].push(p);
+          }
           toRemove.push(i);
           p.moved = true;
         }
@@ -220,6 +230,49 @@ class PCB {
     }
   }
 
+  updateListLimits() {
+    if($('#list-limits-checkbox').prop('checked')) {
+      this.lists['new'].limit = $('#new-limit-slider').slider('getValue');
+      this.lists['ready'].limit = $('#ready-limit-slider').slider('getValue'); 
+      this.lists['waiting'].limit = $('#waiting-limit-slider').slider('getValue'); 
+
+      var toRemove = [];
+      for(var i = this.lists['new'].limit - 1; i < this.lists['new'].length(); i++) {
+        this.lists['new'].processes[i].withError = true;
+        toRemove.push(i);
+        this.lists['terminated'].push(this.lists['new'].processes[i]);
+      }
+      toRemove.forEach(function(p, i) {
+        pcb.lists['new'].splice(p - i, 1);
+      });
+
+      var toRemove = [];
+      for(var i = this.lists['ready'].limit - 1; i < this.lists['ready'].length(); i++) {
+        this.lists['ready'].processes[i].withError = true;
+        toRemove.push(i);
+        this.lists['terminated'].push(this.lists['ready'].processes[i]);
+      }
+      toRemove.forEach(function(p, i) {
+        pcb.lists['ready'].splice(p - i, 1);
+      });
+
+      var toRemove = [];
+      for(var i = this.lists['waiting'].limit - 1; i < this.lists['waiting'].length(); i++) {
+        this.lists['waiting'].processes[i].withError = true;
+        toRemove.push(i);
+        this.lists['terminated'].push(this.lists['waiting'].processes[i]);
+      }
+      toRemove.forEach(function(p, i) {
+        pcb.lists['waiting'].splice(p - i, 1);
+      });
+    }
+    else {
+      this.lists['new'].limit = 50000000;
+      this.lists['ready'].limit = 50000000;
+      this.lists['waiting'].limit = 50000000;
+    }
+  }
+
   tick() {
     this.cycle++;
     $('#clock-label').html(this.cycle);
@@ -228,6 +281,7 @@ class PCB {
     this.runProcesses();
     this.displayProcesses();
     this.updateQuantumLabels();
+    this.updateListLimits();
   }
 
   fillPCBTable() {
