@@ -17,6 +17,7 @@ class Process {
     this.quantum = 0;
     this.moved = false;
     this.withError = false;
+    this.waitedTime = 0;
   }
 
   run() {
@@ -33,6 +34,7 @@ class Process {
   }
 
   wait() {
+    this.waitedTime++;
     this.timeInSystem++;
     this.moved = false;
   }
@@ -82,6 +84,8 @@ class PCB {
     this.processCount = 0;
     this.cycle = 0;
 
+    this.allProcesses = [];
+
     this.lists = [];
     this.lists['new'] = new List($('#new-select'));
     this.lists['ready'] = new List($('#ready-select'));
@@ -99,6 +103,7 @@ class PCB {
     this.lists['running'].forEach(function(p, i) {
       if(p.cpuUsed === p.cpuNeeded && !p.moved) {
         toRemove.push(i);
+        p.finishedCycle = pcb.cycle;
         pcb.lists['terminated'].push(p);
         p.moved = true;
       } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
@@ -108,6 +113,7 @@ class PCB {
           pcb.lists['waiting'].push(p);
         else {
           p.withError = true;
+          p.finishedCycle = pcb.cycle;
           pcb.lists['terminated'].push(p);
         }
       } else if(p.quantum == $('#quantum-slider').slider('getValue') && !p.moved && $('#rr-radio').prop('checked')) {
@@ -129,6 +135,7 @@ class PCB {
           pcb.lists['ready'].push(p);
         else {
           p.withError = true;
+          p.finishedCycle = pcb.cycle;
           pcb.lists['terminated'].push(p);
         }
       }
@@ -157,6 +164,7 @@ class PCB {
             pcb.lists['ready'].push(p);
           else {
             p.withError = true;
+            p.finishedCycle = pcb.cycle;
             pcb.lists['terminated'].push(p);
           }
           toRemove.push(i);
@@ -203,6 +211,7 @@ class PCB {
     if(Math.random() * 100 <= $('#new-process-probability-slider').slider('getValue')) {
       //TODO Do not create when full.
       var p = new Process('P' + this.processCount++, this.cycle);
+      this.allProcesses.push(p);
       p.moved = true;
       this.lists['new'].push(p);
     }
@@ -246,6 +255,7 @@ class PCB {
       for(var i = this.lists['new'].limit - 1; i < this.lists['new'].length(); i++) {
         this.lists['new'].processes[i].withError = true;
         toRemove.push(i);
+        this.lists['new'].processes[i].finishedCycle = this.cycle;
         this.lists['terminated'].push(this.lists['new'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
@@ -256,6 +266,7 @@ class PCB {
       for(var i = this.lists['ready'].limit - 1; i < this.lists['ready'].length(); i++) {
         this.lists['ready'].processes[i].withError = true;
         toRemove.push(i);
+        this.lists['ready'].processes[i].finishedCycle = this.cycle;
         this.lists['terminated'].push(this.lists['ready'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
@@ -266,6 +277,7 @@ class PCB {
       for(var i = this.lists['waiting'].limit - 1; i < this.lists['waiting'].length(); i++) {
         this.lists['waiting'].processes[i].withError = true;
         toRemove.push(i);
+        this.lists['waiting'].processes[i].finishedCycle = this.cycle;
         this.lists['terminated'].push(this.lists['waiting'].processes[i]);
       }
       toRemove.forEach(function(p, i) {
@@ -288,6 +300,7 @@ class PCB {
         this.lists['ready'].push(this.lists['running'].processes[i]);
       } else {
         this.lists['running'].processes[i].withError = true;
+        this.lists['running'].processes[i].finishedCycle = this.cycle;
         this.lists['terminated'].push(this.lists['running'].processes[i]);
       }
     }
@@ -306,10 +319,28 @@ class PCB {
     this.runProcesses();
     this.displayProcesses();
     this.updateQuantumLabels();
+    this.fillPCBTable();
   }
 
   fillPCBTable() {
-
+    $('#pcb-table').html("");
+    this.allProcesses.forEach(function(p) {
+      $('#pcb-table').html(
+        $('#pcb-table').html() +
+        '<tr>' + 
+        '<td>' + p.id +'</td>' +
+        '<td>' + p.creationCycle +'</td>' +
+        '<td>' + p.cpuNeeded +'</td>' +
+        '<td>' + p.cpuUsed +'</td>' +
+        '<td>' + ((p.ioNeeded === 0) ? '---' : p.ioStart) +'</td>' +
+        '<td>' + p.ioNeeded +'</td>' +
+        '<td>' + p.ioUsed +'</td>' +
+        '<td>' + p.finishedCycle +'</td>' +
+        '<td>' + p.waitedTime +'</td>' +
+        '<td>' + p.timeInSystem +'</td>' +
+        '</tr>'
+      );
+    });
   }
 }
 
