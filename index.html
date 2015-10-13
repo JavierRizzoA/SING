@@ -40,7 +40,7 @@
                 <div class="container-fluid">
                   <div class="row" style="margin-top: 10px">
                     <div class="col-xs-4">
-                      <h4>Clock: <span class="label label-default">0</span></h4>
+                      <h4>Clock: <span id="clock-label" class="label label-default">0</span></h4>
                     </div>
                     <div class="col-xs-6">
                       <h4>Quantum: <span class="label label-default">0</span></h4>
@@ -55,13 +55,13 @@
                         <h4>New</h4>
                       </div>
                       <div class="row">
-                        <select multiple class="form-control"></select>
+                        <select multiple id="new-select" class="form-control"></select>
                       </div>
                       <div class="row">
                         <h4>Ready</h4>
                       </div>
                       <div class="row">
-                        <select multiple class="form-control"></select>
+                        <select multiple id="ready-select" class="form-control"></select>
                       </div>
                     </div>
                     <div class="col-sm-3 col-xs-6">
@@ -69,7 +69,7 @@
                         <h4>Waiting</h4>
                       </div>
                       <div class="row">
-                        <select multiple class="form-control"></select>
+                        <select multiple id="waiting-select" class="form-control"></select>
                       </div>
                     </div>
                     <div class="col-sm-3 col-xs-6">
@@ -77,13 +77,13 @@
                         <h4>Running (<span>4</span> cores)</h4>
                       </div>
                       <div class="row">
-                        <select multiple class="form-control"></select>
+                        <select multiple id="running-select" class="form-control"></select>
                       </div>
                       <div class="row">
                         <h4>Using I/O</h4>
                       </div>
                       <div class="row">
-                        <select class="form-control"></select>
+                        <select id="using-io-select" class="form-control"></select>
                       </div>
                     </div>
                     <div class="col-sm-3 col-xs-6">
@@ -91,7 +91,7 @@
                         <h4>Terminated</h4>
                       </div>
                       <div class="row">
-                        <select multiple class="form-control"></select>
+                        <select multiple id="terminated-select" class="form-control"></select>
                       </div>
                     </div>
                   </div>
@@ -113,7 +113,7 @@
                     </div>
                     <div class="col-xs-7">
                       <label class="radio-inline"><input type="radio" id="round-robin-radio" name="algorithm-radio" />Round Robin</label>
-                      <label class="radio-inline"><input type="radio" id="shortest-job-next-radio" name="algorithm-radio" />Shortest Job Next</label>
+                      <label class="radio-inline"><input type="radio" id="shortest-job-next-radio" name="algorithm-radio" />First Come First Serve</label>
                     </div>
                   </div>
                   <div class="row">
