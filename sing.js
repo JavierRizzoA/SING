@@ -219,8 +219,7 @@ class PCB {
   }
 
   createProcesses() {
-    if(Math.random() * 100 <= $('#new-process-probability-slider').slider('getValue')) {
-      //TODO Do not create when full.
+    if(Math.random() * 100 <= $('#new-process-probability-slider').slider('getValue') && this.lists['new'].hasSpace()) {
       var p = new Process('P' + this.processCount++, this.cycle);
       this.allProcesses.push(p);
       p.moved = true;
