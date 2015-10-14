@@ -9,3 +9,9 @@
 .radio-inline, .checkbox-inline {
     padding-top: 12px;
 }
+
+#penguin-container {
+  width: 72px;
+  height: 100px;
+  position: fixed;
+}

@@ -466,8 +466,34 @@ function toggleQuantum() {
 $('#rr-radio').change(toggleQuantum);
 $('#fcfs-radio').change(toggleQuantum);
 
+function returnPenguin() {
+  $('#penguin-container').css('top', $('#logo').offset().top - 70);
+  $('#penguin-container').css('left', $('#logo').offset().left - 40);
+}
+
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  var target = $(e.target).attr("href"); // activated tab
+  if(target !== '#simulation') {
+    $('#penguin-container').hide();
+  } else {
+    $('#penguin-container').show();
+    if(!$('#penguin-mode-checkbox').prop('checked'))
+      returnPenguin();
+  }
+});
+
+$(window).resize(function() {
+  returnPenguin();
+});
+
+$(document).ready(function() {
+  returnPenguin();
+});
+
 var pcb = new PCB();
 
 function cycle() {
   pcb.tick();
 }
+
+//$('#penguin-container').animate({top: $('#logo').offset().top - 50, left: $('#logo').offset().left - 36});

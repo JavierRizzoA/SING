@@ -46,7 +46,7 @@
                       <h4 style="display: none;">Quantum: <span id="quantum-1-label" style="margin-right: 5px" class="label label-default">0</span><span id="quantum-2-label" style="margin-right: 5px" class="label label-default">0</span><span id="quantum-3-label" style="margin-right: 5px" class="label label-default">0</span><span id="quantum-4-label" class="label label-default">0</span></h4>
                     </div>
                     <div class="col-xs-2">
-                      <h4><span class="glyphicon glyphicon-music"></span></h4>
+                      <h4><span id="logo" class="glyphicon glyphicon-music"></span></h4>
                     </div>
                   </div>
                   <div class="row">
@@ -188,6 +188,14 @@
                       <input id="io-slider" type="text" class="span2" value="" data-slider-min="0" data-slider-max="100" data-slider-value="[3,9]" style="width: 100%"/>
                     </div>
                   </div>
+                  <div class="row">
+                    <div class="col-xs-5">
+                      <h4>Penguin mode</h4>
+                    </div>
+                    <div class="col-xs-7">
+                      <label class="checkbox-inline"><input type="checkbox" id="penguin-mode-checkbox" />Enable penguin mode.</label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div role="tabpanel" class="tab-pane" id="pcb">
@@ -213,6 +221,10 @@
           </div>
         </div>
       </div>
+    </div>
+    
+    <div id="penguin-container">
+      <img src="img/penguin.png" />
     </div>
 
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
