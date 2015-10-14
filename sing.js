@@ -326,16 +326,20 @@ class PCB {
   }
 
   tick() {
-    this.cycle++;
-    $('#clock-label').html(this.cycle);
-    this.createProcesses();
-    this.moveProcesses();
-    this.updateListLimits();
-    this.updateCPUCores();
-    this.runProcesses();
-    this.displayProcesses();
-    this.updateQuantumLabels();
-    this.fillPCBTable();
+    if(!$('#penguin-mode-checkbox').prop('checked')) {
+      this.cycle++;
+      $('#clock-label').html(this.cycle);
+      this.createProcesses();
+      this.moveProcesses();
+      this.updateListLimits();
+      this.updateCPUCores();
+      this.runProcesses();
+      this.displayProcesses();
+      this.updateQuantumLabels();
+      this.fillPCBTable();
+    } else {
+
+    }
   }
 
   fillPCBTable() {
@@ -468,7 +472,7 @@ $('#fcfs-radio').change(toggleQuantum);
 
 function returnPenguin() {
   $('#penguin-container').css('top', $('#logo').offset().top - 70);
-  $('#penguin-container').css('left', $('#logo').offset().left - 40);
+  $('#penguin-container').css('left', $('#logo').offset().left - 90);
 }
 
 $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {

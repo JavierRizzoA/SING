@@ -11,7 +11,26 @@
 }
 
 #penguin-container {
-  width: 72px;
+  width: 122px;
   height: 100px;
   position: fixed;
+}
+
+#penguin-image {
+  width: 72px;
+  height: 100px;
+  float: right;
+}
+
+#penguin-process {
+  width: 72px;
+  height: 28px;
+  position: fixed;
+  margin-top: 50px;
+  border-style: solid;
+  border-width: 5px;
+  border-color: #000000;
+  background: #FFFFFF;
+  z-index: -1;
+  display: none;
 }
