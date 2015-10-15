@@ -132,13 +132,13 @@ class PCB {
   moveProcesses() {
     var toRemove = [];
     this.lists['running'].forEach(function(p, i) {
-      if(p.cpuUsed === p.cpuNeeded && !p.moved) {
+      if(p.cpuUsed >= p.cpuNeeded && !p.moved) {
         toRemove.push(i);
         p.finishedCycle = pcb.cycle;
         p.status = 'Terminated';
         pcb.lists['terminated'].push(p);
         p.moved = true;
-      } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
+      } else if(p.cpuUsed >= p.ioStart && p.ioNeeded != 0  && p.ioUsed === 0 && !p.moved) {
         p.moved = true;
         toRemove.push(i);
         if(pcb.lists['waiting'].hasSpace()) {
@@ -163,7 +163,7 @@ class PCB {
 
     toRemove = [];
     this.lists['io'].forEach(function(p, i) {
-      if(p.ioUsed === p.ioNeeded && !p.moved) {
+      if(p.ioUsed >= p.ioNeeded && !p.moved) {
         toRemove.push(i);
         p.moved = true;
         if(pcb.lists['ready'].hasSpace()) {
@@ -266,16 +266,16 @@ class PCB {
     switch(this.lists['running'].processes.length) {
       case 4:
         $('#quantum-4-label').show();
-        $('#quantum-4-label').html(this.lists['running'].processes[3].quantum - 1);
+        $('#quantum-4-label').html((this.lists['running'].processes[3].quantum - 1 >= 0) ? this.lists['running'].processes[3].quantum - 1 : '0');
       case 3:
         $('#quantum-3-label').show();
-        $('#quantum-3-label').html(this.lists['running'].processes[2].quantum - 1);
+        $('#quantum-3-label').html((this.lists['running'].processes[2].quantum - 1 >= 0) ? this.lists['running'].processes[2].quantum - 1 : '0');
       case 2:
         $('#quantum-2-label').show();
-        $('#quantum-2-label').html(this.lists['running'].processes[1].quantum - 1);
+        $('#quantum-2-label').html((this.lists['running'].processes[1].quantum - 1 >= 0) ? this.lists['running'].processes[1].quantum - 1 : '0');
       case 1:
         $('#quantum-1-label').show();
-        $('#quantum-1-label').html(this.lists['running'].processes[0].quantum - 1);
+        $('#quantum-1-label').html((this.lists['running'].processes[0].quantum - 1 >= 0) ? this.lists['running'].processes[0].quantum - 1 : '0');
         $('#quantum-4-label').parent().show();
         break;
       case 0:
@@ -427,12 +427,12 @@ class PCB {
 
   penguinMoveProcesses() {
     this.lists['running'].forEach(function(p, i) {
-      if(p.cpuUsed === p.cpuNeeded && !p.moved) {
+      if(p.cpuUsed >= p.cpuNeeded && !p.moved) {
         p.finishedCycle = pcb.cycle;
         p.status = 'Terminated';
         pcb.penguinMovements.push(new Movement('running', p.id, 'terminated'));
         p.moved = true;
-      } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
+      } else if(p.cpuUsed >= p.ioStart && p.ioNeeded != 0 && p.ioUsed === 0 && !p.moved) {
         p.moved = true;
         if(pcb.lists['waiting'].hasPenguinSpace()) {
           p.status = 'Waiting';
@@ -450,7 +450,7 @@ class PCB {
     });
 
     this.lists['io'].forEach(function(p, i) {
-      if(p.ioUsed === p.ioNeeded && !p.moved) {
+      if(p.ioUsed >= p.ioNeeded && !p.moved) {
         p.moved = true;
         if(pcb.lists['ready'].hasPenguinSpace()) {
           p.status = 'Ready';
