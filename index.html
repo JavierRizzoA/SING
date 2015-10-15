@@ -34,6 +34,7 @@
               <li role="presentation" class="active"><a href="#simulation" role="tab" data-toggle="tab">Simulation</a></li>
               <li role="presentation" class=""><a href="#pcb" role="tab" data-toggle="tab">PCB</a></li>
               <li role="presentation" class=""><a href="#settings" role="tab" data-toggle="tab">Settings</a></li>
+              <li role="presentation" class=""><a href="#help" role="tab" data-toggle="tab">Help</a></li>
             </ul>
             <div class="tab-content">
               <div role="tabpanel" class="tab-pane active" id="simulation">
@@ -216,6 +217,37 @@
                   <tbody id="pcb-table">
                   </tbody>
                 </table>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="help">
+                <div class="container-fluid">
+                  <h2>Help</h2>
+                  <h3>Settings</h3>
+                  <ul>
+                    <li><b>New process probability: </b>It is the probability of the creation of a new process each cycle.</li>
+                    <li><b>Algorithm: </b>The scheduling algorithm to be used.</li>
+                    <li><b>Quantum: </b>The quantum of each process while using Round Robin algorithm.</li>
+                    <li><b>Delay: </b>The time, in seconds, between each cycle. While on penguin mode, this is the time the penguin takes to move each process.</li>
+                    <li><b>CPU cores: </b>The number of cores of the CPU, this is, the number of processes it can handle at the same time.</li>
+                    <li><b>List limits: </b>When this option is checked, the lists will have a limit of processes they can hold. If they have more than the specified limit, the exceding processes will be terminated with error.</li>
+                    <li><b>CPU cycles per process range: </b>The number of cycles on the CPU each process need, which will be randomly generated between the specified range.</li>
+                    <li><b>IO Cycles per process range: </b>The number of cycles on the IO device each process need, which will be randomly generated between the specified range.</li>
+                    <li><b>Penguin mode: </b>When checked, a penguin will move the processes.</li>
+                  </ul>
+                  <h3>PCB</h3>
+                  <p>This table holds the information of each process, ordered by creation time.</p>
+                  <h3>Simulation</h3>
+                  <p>On this time, the simulation can be observed in real time. To play, pause, or stop the simulation, click on the buttons in the top-right corner.</p>
+                  <h3>Extra features</h3>
+                  <ul>
+                    <li>There is a penguin mode!</li>
+                    <li>The settings can be changed even if the simulation is not paused.</li>
+                    <li>The CPU can have many cores (between 1 and 4).</li>
+                    <li>Lists can have, or not, a limit.</li>
+                    <li>The CPU cycles and IO cycles are specified by a range.</li>
+                  </ul>
+                  <h3>About</h3>
+                  <p>Created with <span class="glyphicon glyphicon-heart" aria-hidden="true"></span> by Javier Rizzo, for the Operating Systems class.</p>
+                </div>
               </div>
             </div>
           </div>
