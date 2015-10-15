@@ -24,11 +24,11 @@
 
 #penguin-process {
   width: 72px;
-  height: 28px;
+  height: 20px;
   position: fixed;
   margin-top: 50px;
   border-style: solid;
-  border-width: 5px;
+  border-width: 1px;
   border-color: #000000;
   background: #FFFFFF;
   z-index: -1;

@@ -46,6 +46,7 @@ class List {
     this.display = display;
     this.limit = 50000000;
     this.processes = [];
+    this.penguinMoveCount = 0;
   }
 
   fillDisplay() {
@@ -78,6 +79,31 @@ class List {
   hasSpace() {
     return this.processes.length < this.limit;
   }
+
+  hasPenguinSpace() {
+    return (this.penguinMoveCount + this.processes.length) < this.limit;
+  }
+}
+
+class Movement {
+  constructor(sourceList, processID, destinationList) {
+    this.sourceList = sourceList;
+    this.processID = processID;
+    this.destinationList = destinationList;
+    pcb.lists[destinationList].penguinMoveCount++;
+  }
+
+  getIndex() {
+    var index = -1;
+    var that = this;
+    pcb.lists[this.sourceList].forEach(function(p, i) {
+      if(p.id === that.processID) {
+        index = i;
+        return;
+      }
+    });
+    return index;
+  }
 }
 
 class PCB {
@@ -92,11 +118,15 @@ class PCB {
     this.lists['ready'] = new List($('#ready-select'));
     this.lists['waiting'] = new List($('#waiting-select'));
     this.lists['running'] = new List($('#running-select'));
-    this.lists['io'] = new List($('#using-io-select'));
+    this.lists['io'] = new List($('#io-select'));
     this.lists['terminated'] = new List($('#terminated-select'));
 
     this.lists['running'].limit = 4;
     this.lists['io'].limit = 1;
+
+    this.movingPenguin = false;
+    this.penguinProcess = null;
+    this.penguinMovements = [];
   }
 
   moveProcesses() {
@@ -304,8 +334,43 @@ class PCB {
     }
   }
 
+  penguinUpdateListLimits() {
+    if($('#list-limits-checkbox').prop('checked')) {
+      this.lists['new'].limit = $('#new-limit-slider').slider('getValue');
+      this.lists['ready'].limit = $('#ready-limit-slider').slider('getValue'); 
+      this.lists['waiting'].limit = $('#waiting-limit-slider').slider('getValue'); 
+
+      for(var i = this.lists['new'].limit - 1; i < this.lists['new'].length(); i++) {
+        this.lists['new'].processes[i].withError = true;
+        this.lists['new'].processes[i].finishedCycle = this.cycle;
+        this.lists['new'].processes[i].status = 'Error';
+        pcb.penguinMovements.push(new Movement('new', this.lists['new'].processes[i].id, 'terminated'));
+      }
+
+      for(var i = this.lists['ready'].limit - 1; i < this.lists['ready'].length(); i++) {
+        this.lists['ready'].processes[i].withError = true;
+        this.lists['ready'].processes[i].finishedCycle = this.cycle;
+        this.lists['ready'].processes[i].status = 'Error';
+        pcb.penguinMovements.push(new Movement('ready', this.lists['ready'].processes[i].id, 'terminated'));
+      }
+
+      for(var i = this.lists['waiting'].limit - 1; i < this.lists['waiting'].length(); i++) {
+        this.lists['waiting'].processes[i].withError = true;
+        this.lists['waiting'].processes[i].finishedCycle = this.cycle;
+        this.lists['waiting'].processes[i].status = 'Error';
+        pcb.penguinMovements.push(new Movement('waiting', this.lists['waiting'].processes[i].id, 'terminated'));
+      }
+    } else {
+      this.lists['new'].limit = 50000000;
+      this.lists['ready'].limit = 50000000;
+      this.lists['waiting'].limit = 50000000;
+    }
+  }
+
+
   updateCPUCores() {
     this.lists['running'].limit = $('#cores-slider').slider('getValue');
+    $('#core-number').html(this.lists['running'].limit + (this.lists['running'].limit === 1 ? ' core' : ' cores'));
     var toRemove = [];
     for(var i = this.lists['running'].limit; i < this.lists['running'].length(); i++) {
       toRemove.push(i);
@@ -324,8 +389,119 @@ class PCB {
     });
   }
 
+  penguinUpdateCPUCores() {
+    this.lists['running'].limit = $('#cores-slider').slider('getValue');
+    $('#core-number').html(this.lists['running'].limit + (this.lists['running'].limit === 1 ? ' core' : ' cores'));
+    for(var i = this.lists['running'].limit; i < this.lists['running'].length(); i++) {
+      if(this.lists['ready'].hasPenguinSpace()) {
+        this.lists['running'].processes[i].status = 'Ready';
+        pcb.penguinMovements.push(new Movement('running', this.lists['running'].processes[i].id, 'ready'));
+        this.lists['ready'].push(this.lists['running'].processes[i]);
+      } else {
+        this.lists['running'].processes[i].withError = true;
+        this.lists['running'].processes[i].finishedCycle = this.cycle;
+        this.lists['running'].processes[i].status = 'Error';
+        pcb.penguinMovements.push(new Movement('running', this.lists['running'].processes[i].id, 'terminated'));
+      }
+    }
+  }
+
+  penguinMoveProcess(sourceList, i, destinationList) {
+    pcb.penguinMovements.splice(0, 1);
+    $('#penguin-container').animate({top: $('#' + sourceList + '-select').offset().top, left: $('#' + sourceList + '-select').offset().left}, $('#delay-slider').slider('getValue') * 1000, function() {
+      pcb.penguinProcess = pcb.lists[sourceList].processes[i];
+      pcb.lists[sourceList].splice(i, 1);
+      pcb.displayProcesses();
+      pcb.updateQuantumLabels();
+      $('#penguin-process').html(pcb.penguinProcess.id);
+      $('#penguin-process').show();
+      $('#penguin-container').animate({top: $('#' +  destinationList + '-select').offset().top, left: $('#' +  destinationList + '-select').offset().left}, $('#delay-slider').slider('getValue') * 1000, function() {
+        pcb.lists[destinationList].push(pcb.penguinProcess);
+        $('#penguin-process').hide();
+        pcb.displayProcesses();
+        pcb.updateQuantumLabels();
+        pcb.movingPenguin = false;
+      });
+    });
+  }
+
+  penguinMoveProcesses() {
+    this.lists['running'].forEach(function(p, i) {
+      if(p.cpuUsed === p.cpuNeeded && !p.moved) {
+        p.finishedCycle = pcb.cycle;
+        p.status = 'Terminated';
+        pcb.penguinMovements.push(new Movement('running', p.id, 'terminated'));
+        p.moved = true;
+      } else if(p.cpuUsed === p.ioStart && p.ioNeeded != 0 && !p.moved) {
+        p.moved = true;
+        if(pcb.lists['waiting'].hasPenguinSpace()) {
+          p.status = 'Waiting';
+          pcb.penguinMovements.push(new Movement('running', p.id, 'waiting'));
+        } else {
+          p.withError = true;
+          p.finishedCycle = pcb.cycle;
+          p.status = 'Error';
+          pcb.penguinMovements.push(new Movement('running', p.id, 'terminated'));
+        }
+      } else if(p.quantum == $('#quantum-slider').slider('getValue') && !p.moved && $('#rr-radio').prop('checked')) {
+        p.moved = true;
+        pcb.penguinMovements.push(new Movement('running', p.id, 'ready'));
+      }
+    });
+
+    this.lists['io'].forEach(function(p, i) {
+      if(p.ioUsed === p.ioNeeded && !p.moved) {
+        p.moved = true;
+        if(pcb.lists['ready'].hasPenguinSpace()) {
+          p.status = 'Ready';
+          pcb.penguinMovements.push(new Movement('io', p.id, 'ready'));
+        } else {
+          p.withError = true;
+          p.finishedCycle = pcb.cycle;
+          p.status = 'Error';
+          pcb.penguinMovements.push(new Movement('io', p.id, 'terminated'));
+        }
+      }
+    });
+
+    this.lists['waiting'].forEach(function(p, i) {
+      if(pcb.lists['io'].hasPenguinSpace() && !p.moved) {
+        p.moved = true;
+        p.status = 'Using I/O';
+        pcb.penguinMovements.push(new Movement('waiting', p.id, 'io'));
+      }
+    });
+
+    if(this.lists['running'].hasPenguinSpace()) {
+      this.lists['new'].forEach(function(p, i){
+        if(!p.moved) {
+          if(pcb.lists['ready'].hasPenguinSpace()) {
+            p.status = 'Ready';
+            pcb.penguinMovements.push(new Movement('new', p.id, 'ready'));
+          } else {
+            p.withError = true;
+            p.finishedCycle = pcb.cycle;
+            p.status = 'Error';
+            pcb.penguinMovements.push(new Movement('new', p.id, 'terminated'));
+          }
+          p.moved = true;
+        }
+      });
+    }
+
+    this.lists['ready'].forEach(function(p, i) {
+      if(pcb.lists['running'].hasPenguinSpace() && !p.moved) {
+        p.quantum = 0;
+        p.moved = true;
+        p.status = 'Running';
+        pcb.penguinMovements.push(new Movement('ready', p.id, 'running'));
+      }
+    });
+  }
+
   tick() {
     if(!$('#penguin-mode-checkbox').prop('checked')) {
+      this.movingPenguin = false;
       this.cycle++;
       $('#clock-label').html(this.cycle);
       this.createProcesses();
@@ -337,7 +513,30 @@ class PCB {
       this.updateQuantumLabels();
       this.fillPCBTable();
     } else {
+      if(this.penguinMovements.length === 0 && !this.movingPenguin) {
+        this.lists['new'].penguinMoveCount = 0;
+        this.lists['ready'].penguinMoveCount = 0;
+        this.lists['waiting'].penguinMoveCount = 0;
+        this.lists['running'].penguinMoveCount = 0;
+        this.lists['io'].penguinMoveCount = 0;
+        this.lists['terminated'].penguinMoveCount = 0;
 
+        this.penguinUpdateListLimits();
+        this.penguinUpdateCPUCores();
+        this.runProcesses();
+        this.updateQuantumLabels();
+        this.fillPCBTable();
+        this.cycle++;
+        $('#clock-label').html(this.cycle);
+        this.createProcesses();
+        this.displayProcesses();
+        this.penguinMoveProcesses();
+      } else {
+        if(!this.movingPenguin) {
+          this.movingPenguin = true;
+          this.penguinMoveProcess(this.penguinMovements[0].sourceList, this.penguinMovements[0].getIndex(), this.penguinMovements[0].destinationList);
+        }
+      }
     }
   }
 
@@ -426,11 +625,30 @@ $('#list-limits-checkbox').change(function() {
   }
 });
 
-$('#delay-slider').on('slide', function(e) {
-  if(running) {
-    clearInterval(interval);
-    interval = setInterval(cycle, e.value * 1000);
+$('#penguin-mode-checkbox').change(function() {
+  if(this.checked) {
+    if(running) {
+      clearInterval(interval);
+      interval = setInterval(cycle, 100);
+    }
+  } else {
+    if(running) {
+      clearInterval(interval);
+      interval = setInterval(cycle, $('#delay-slider').slider('getValue') * 1000);
+    }
+    $('#delay-slider').slider('enable');
   }
+});
+
+$('#delay-slider').on('change', function(e) {
+  if(running && !$('#penguin-mode-checkbox').prop('checked')) {
+    clearInterval(interval);
+    interval = setInterval(cycle, $('#delay-slider').slider('getValue') * 1000);
+  }
+});
+
+$('#cores-slider').on('change', function(e) {
+  $('#core-number').html($('#cores-slider').slider('getValue') + ($('#cores-slider').slider('getValue') === 1 ? ' core' : ' cores'));
 });
 
 $('#play-badge').on('click', function() {
@@ -448,6 +666,8 @@ $('#pause-badge').on('click', function() {
 });
 
 $('#stop-badge').on('click', function() {
+  $('#penguin-container').stop(true, false);
+  returnPenguin();
   $('#play-badge').parent().show();
   $('#pause-badge').parent().hide();
   running = false;
@@ -470,6 +690,7 @@ $('#rr-radio').change(toggleQuantum);
 $('#fcfs-radio').change(toggleQuantum);
 
 function returnPenguin() {
+  $('#penguin-process').hide();
   $('#penguin-container').css('top', $('#logo').offset().top - 70);
   $('#penguin-container').css('left', $('#logo').offset().left - 90);
 }
@@ -480,8 +701,14 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     $('#penguin-container').hide();
   } else {
     $('#penguin-container').show();
-    if(!$('#penguin-mode-checkbox').prop('checked'))
+    if(!$('#penguin-mode-checkbox').prop('checked')) {
+      $('#penguin-container').stop(true, false);
       returnPenguin();
+    } else {
+      $('#penguin-container').stop(false, true);
+      $('#penguin-container').css('top', $('#' + 'running' + '-select').offset().top);
+      $('#penguin-container').css('left', $('#' + 'running' + '-select').offset().top);
+    }
   }
 });
 
