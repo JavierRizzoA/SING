@@ -501,7 +501,7 @@ class PCB {
 
   tick() {
     if(!$('#penguin-mode-checkbox').prop('checked')) {
-      this.movingPenguin = false;
+      this.movingPenguin = true;
       this.cycle++;
       $('#clock-label').html(this.cycle);
       this.createProcesses();
@@ -512,6 +512,7 @@ class PCB {
       this.displayProcesses();
       this.updateQuantumLabels();
       this.fillPCBTable();
+      this.movingPenguin = false;
     } else {
       if(this.penguinMovements.length === 0 && !this.movingPenguin) {
         this.lists['new'].penguinMoveCount = 0;
