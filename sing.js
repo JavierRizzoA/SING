@@ -395,7 +395,6 @@ class PCB {
     for(var i = this.lists['running'].limit; i < this.lists['running'].length(); i++) {
       if(this.lists['ready'].hasPenguinSpace()) {
         this.lists['running'].processes[i].status = 'Ready';
-        pcb.penguinMovements.push(new Movement('running', this.lists['running'].processes[i].id, 'ready'));
         this.lists['ready'].push(this.lists['running'].processes[i]);
       } else {
         this.lists['running'].processes[i].withError = true;
